@@ -1,0 +1,3 @@
+[submodule "references/Swin-Unet"]
+	path = references/Swin-Unet
+	url = git@github.com:HuCaoFighting/Swin-Unet.git
