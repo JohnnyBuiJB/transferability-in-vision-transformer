@@ -165,3 +165,6 @@ data/
 
 # Ignore experiments log
 references/*/test_log*
+# Data
+*.h5
+*.npz
