@@ -168,3 +168,5 @@ references/*/test_log*
 # Data
 *.h5
 *.npz
+*.nii
+*.nii.gz
