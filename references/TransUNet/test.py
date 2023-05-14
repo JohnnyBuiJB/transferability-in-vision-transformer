@@ -14,9 +14,14 @@ from utils import test_single_volume
 from networks.vit_seg_modeling import VisionTransformer as ViT_seg
 from networks.vit_seg_modeling import CONFIGS as CONFIGS_ViT_seg
 
+sys.path.append(os.path.abspath('../../'))
+from helper import get_TransUNet_model
+
 parser = argparse.ArgumentParser()
 parser.add_argument('--volume_path', type=str,
                     default='../data/Synapse/test_vol_h5', help='root dir for validation volume data')  # for acdc volume_path=root_dir
+parser.add_argument('--checkpoint_path', type=str,
+                    default='references/model/TU_Synapse224/TU_pretrain_R50-ViT-B_16_skip3_epo150_bs24_224/epoch_149.pth', help='path points to model weight checkpoint')
 parser.add_argument('--dataset', type=str,
                     default='Synapse', help='experiment_name')
 parser.add_argument('--num_classes', type=int,
@@ -77,49 +82,13 @@ if __name__ == "__main__":
     torch.manual_seed(args.seed)
     torch.cuda.manual_seed(args.seed)
 
-    dataset_config = {
-        'Synapse': {
-            'Dataset': Synapse_dataset,
-            'volume_path': args.volume_path,
-            'list_dir': './lists/lists_Synapse',
-            'num_classes': 9,
-            'z_spacing': 1,
-        },
-    }
-    dataset_name = args.dataset
-    args.num_classes = dataset_config[dataset_name]['num_classes']
-    args.volume_path = dataset_config[dataset_name]['volume_path']
-    args.Dataset = dataset_config[dataset_name]['Dataset']
-    args.list_dir = dataset_config[dataset_name]['list_dir']
-    args.z_spacing = dataset_config[dataset_name]['z_spacing']
-    args.is_pretrain = True
+    args.exp = 'TU_' + args.dataset + str(args.img_size)
 
-    # name the same snapshot defined in train script!
-    args.exp = 'TU_' + dataset_name + str(args.img_size)
-    snapshot_path = "../model/{}/{}".format(args.exp, 'TU')
-    snapshot_path = snapshot_path + '_pretrain' if args.is_pretrain else snapshot_path
-    snapshot_path += '_' + args.vit_name
-    snapshot_path = snapshot_path + '_skip' + str(args.n_skip)
-    snapshot_path = snapshot_path + '_vitpatch' + str(args.vit_patches_size) if args.vit_patches_size!=16 else snapshot_path
-    snapshot_path = snapshot_path + '_epo' + str(args.max_epochs) if args.max_epochs != 30 else snapshot_path
-    if dataset_name == 'ACDC':  # using max_epoch instead of iteration to control training duration
-        snapshot_path = snapshot_path + '_' + str(args.max_iterations)[0:2] + 'k' if args.max_iterations != 30000 else snapshot_path
-    snapshot_path = snapshot_path+'_bs'+str(args.batch_size)
-    snapshot_path = snapshot_path + '_lr' + str(args.base_lr) if args.base_lr != 0.01 else snapshot_path
-    snapshot_path = snapshot_path + '_'+str(args.img_size)
-    snapshot_path = snapshot_path + '_s'+str(args.seed) if args.seed!=1234 else snapshot_path
-
-    config_vit = CONFIGS_ViT_seg[args.vit_name]
-    config_vit.n_classes = args.num_classes
-    config_vit.n_skip = args.n_skip
-    config_vit.patches.size = (args.vit_patches_size, args.vit_patches_size)
-    if args.vit_name.find('R50') !=-1:
-        config_vit.patches.grid = (int(args.img_size/args.vit_patches_size), int(args.img_size/args.vit_patches_size))
-    net = ViT_seg(config_vit, img_size=args.img_size, num_classes=config_vit.n_classes).cuda()
-
-    snapshot = os.path.join(snapshot_path, 'best_model.pth')
-    if not os.path.exists(snapshot): snapshot = snapshot.replace('best_model', 'epoch_'+str(args.max_epochs-1))
-    net.load_state_dict(torch.load(snapshot))
+    net = get_TransUNet_model(args)
+    snapshot_path = args.checkpoint_path
+    # snapshot = os.path.join(snapshot_path, 'best_model.pth')
+    # if not os.path.exists(snapshot): snapshot = snapshot.replace('best_model', 'epoch_'+str(args.max_epochs-1))
+    net.load_state_dict(torch.load(args.checkpoint_path))
     snapshot_name = snapshot_path.split('/')[-1]
 
     log_folder = './test_log/test_log_' + args.exp
@@ -130,9 +99,10 @@ if __name__ == "__main__":
     logging.info(snapshot_name)
 
     if args.is_savenii:
-        args.test_save_dir = '../predictions'
-        test_save_path = os.path.join(args.test_save_dir, args.exp, snapshot_name)
-        os.makedirs(test_save_path, exist_ok=True)
+        # args.test_save_dir = '../predictions'
+        # test_save_path = os.path.join(args.test_save_dir, args.exp, snapshot_name)
+        test_save_path = args.test_save_dir
+        os.makedirs(args.test_save_dir, exist_ok=True)
     else:
         test_save_path = None
     inference(args, net, test_save_path)

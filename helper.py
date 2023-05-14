@@ -56,7 +56,7 @@ def get_TransUNet_model(args):
         'Synapse': {
             'Dataset': Synapse_dataset,
             'volume_path': args.volume_path,
-            'list_dir': './references/TransUNet/lists/lists_Synapse',
+            'list_dir': args.list_dir,
             'num_classes': 9,
             'z_spacing': 1,
             'img_size': 224,
