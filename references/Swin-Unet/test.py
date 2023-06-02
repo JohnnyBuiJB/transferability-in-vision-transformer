@@ -58,8 +58,8 @@ parser.add_argument('--eval', action='store_true', help='Perform evaluation only
 parser.add_argument('--throughput', action='store_true', help='Test throughput only')
 
 args = parser.parse_args()
-if args.dataset == "Synapse":
-    args.volume_path = os.path.join(args.volume_path, "test_vol_h5")
+# if args.dataset == "Synapse":
+    # args.volume_path = os.path.join(args.volume_path, "test_vol_h5")
 config = get_config(args)
 
 
@@ -119,6 +119,7 @@ if __name__ == "__main__":
 
     snapshot = os.path.join(args.output_dir, 'best_model.pth')
     if not os.path.exists(snapshot): snapshot = snapshot.replace('best_model', 'epoch_'+str(args.max_epochs-1))
+    print(snapshot)
     msg = net.load_state_dict(torch.load(snapshot))
     print("self trained swin unet",msg)
     snapshot_name = snapshot.split('/')[-1]
