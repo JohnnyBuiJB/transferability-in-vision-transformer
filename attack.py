@@ -3,6 +3,7 @@ import sys
 import os
 import random
 import logging
+import getpass as gt
 
 import torch
 import numpy as np
@@ -11,7 +12,7 @@ from torch.utils.data import DataLoader
 from scipy.ndimage import zoom
 from tqdm import tqdm
 
-from helper import set_seeds, get_TransUNet_model, show_compare_img, normalize_image
+from helper import set_seeds, get_TransUNet_model, show_compare_img, get_SwinUnet_model
 from adv_attacks import FGSM
 from utils import test_single_volume
 
@@ -23,7 +24,7 @@ parser.add_argument('--checkpoint_path', type=str,
 parser.add_argument('--list_dir', type=str,
                     default='./lists/lists_Synapse', help='list dir')
 parser.add_argument('--save_dir', type=str,
-                    default=f'/nfs/hpc/share/{os.getlogin()}/data/Synapse/adv_vol_h5', help='specify the directory to store adversarial examples')
+                    default=f'/nfs/hpc/share/{gt.getuser()}/data/Synapse/adv_vol_h5', help='specify the directory to store adversarial examples')
 parser.add_argument('--dataset', type=str,
                     default='Synapse', help='experiment_name')
 parser.add_argument('--vit_name', type=str, default='ViT-B_16', help='select one vit model')
@@ -31,6 +32,8 @@ parser.add_argument('--vit_patches_size', type=int, default=16, help='vit_patche
 parser.add_argument('--img_size', type=int, default=224, help='input patch size of network input')
 parser.add_argument('--n_skip', type=int, default=3, help='using number of skip-connect, default is num')
 parser.add_argument('--seed', type=int, default=1234, help='random seed')
+parser.add_argument('--model_name', type=str, default='TU', help='select between (TU, SU, BU or U)')
+parser.add_argument('--cfg', type=str, metavar="FILE", help='path to config file')
 
 args = parser.parse_args()
 
@@ -76,7 +79,10 @@ if __name__ == '__main__':
     save_path = args.save_dir
     os.makedirs(save_path, exist_ok=True)
     
-    model = get_TransUNet_model(args)
+    if args.model_name == 'TU':
+        model = get_TransUNet_model(args)
+    elif args.model_name == 'SU':
+        model = get_SwinUnet_model(args)
 
     db_test = args.Dataset(base_dir=args.volume_path, split="test_vol", list_dir=args.list_dir)
     testloader = DataLoader(db_test, batch_size=1, shuffle=False, num_workers=1)
