@@ -191,29 +191,29 @@ def update_config(config, args):
     _update_config_from_file(config, args.cfg)
 
     config.defrost()
-    if args.opts:
+    if 'opts' in args and args.opts:
         config.merge_from_list(args.opts)
 
     # merge from specific arguments
-    if args.batch_size:
+    if 'batch_size' in args and args.batch_size:
         config.DATA.BATCH_SIZE = args.batch_size
-    if args.zip:
+    if 'zip' in args and args.zip:
         config.DATA.ZIP_MODE = True
-    if args.cache_mode:
+    if 'cache_mode' in args and args.cache_mode:
         config.DATA.CACHE_MODE = args.cache_mode
-    if args.resume:
+    if 'resume' in args and args.resume:
         config.MODEL.RESUME = args.resume
-    if args.accumulation_steps:
+    if 'accumulation_steps' in args and args.accumulation_steps:
         config.TRAIN.ACCUMULATION_STEPS = args.accumulation_steps
-    if args.use_checkpoint:
+    if 'use_checkpoint' in args and args.use_checkpoint:
         config.TRAIN.USE_CHECKPOINT = True
-    if args.amp_opt_level:
+    if 'amp_opt_level' in args and args.amp_opt_level:
         config.AMP_OPT_LEVEL = args.amp_opt_level
-    if args.tag:
+    if 'tag' in args and args.tag:
         config.TAG = args.tag
-    if args.eval:
+    if 'eval' in args and args.eval:
         config.EVAL_MODE = True
-    if args.throughput:
+    if 'throughput' in args and args.throughput:
         config.THROUGHPUT_MODE = True
 
     config.freeze()

@@ -24,7 +24,8 @@ parser.add_argument('--num_classes', type=int,
                     default=9, help='output channel of network')
 parser.add_argument('--list_dir', type=str,
                     default='./lists/lists_Synapse', help='list dir')
-parser.add_argument('--output_dir', type=str, help='output dir')   
+parser.add_argument('--output_dir', type=str, help='output dir')
+parser.add_argument('--checkpoint_path', type=str, help='checkpoint path (i.e. /nfs/hpc/share/yonge/SU_Synapse224/epoch_149.pth)')
 parser.add_argument('--max_iterations', type=int,default=30000, help='maximum epoch number to train')
 parser.add_argument('--max_epochs', type=int, default=150, help='maximum epoch number to train')
 parser.add_argument('--batch_size', type=int, default=24,
@@ -58,8 +59,8 @@ parser.add_argument('--eval', action='store_true', help='Perform evaluation only
 parser.add_argument('--throughput', action='store_true', help='Test throughput only')
 
 args = parser.parse_args()
-if args.dataset == "Synapse":
-    args.volume_path = os.path.join(args.volume_path, "test_vol_h5")
+# if args.dataset == "Synapse":
+    # args.volume_path = os.path.join(args.volume_path, "test_vol_h5")
 config = get_config(args)
 
 
@@ -117,8 +118,10 @@ if __name__ == "__main__":
 
     net = ViT_seg(config, img_size=args.img_size, num_classes=args.num_classes).cuda()
 
-    snapshot = os.path.join(args.output_dir, 'best_model.pth')
-    if not os.path.exists(snapshot): snapshot = snapshot.replace('best_model', 'epoch_'+str(args.max_epochs-1))
+    # snapshot = os.path.join(args.output_dir, 'best_model.pth')
+    # if not os.path.exists(snapshot): snapshot = snapshot.replace('best_model', 'epoch_'+str(args.max_epochs-1))
+    # print(snapshot)
+    snapshot = args.checkpoint_path
     msg = net.load_state_dict(torch.load(snapshot))
     print("self trained swin unet",msg)
     snapshot_name = snapshot.split('/')[-1]
@@ -131,7 +134,7 @@ if __name__ == "__main__":
     logging.info(snapshot_name)
 
     if args.is_savenii:
-        args.test_save_dir = os.path.join(args.output_dir, "predictions")
+        # args.test_save_dir = os.path.join(args.output_dir, "predictions")
         test_save_path = args.test_save_dir 
         os.makedirs(test_save_path, exist_ok=True)
     else:

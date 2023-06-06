@@ -10,12 +10,10 @@ import torch.nn as nn
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 from datasets.dataset_synapse import Synapse_dataset
-from utils import test_single_volume
-from networks.vit_seg_modeling import VisionTransformer as ViT_seg
-from networks.vit_seg_modeling import CONFIGS as CONFIGS_ViT_seg
+from utils.util import test_single_volume
 
-sys.path.append(os.path.abspath('../../'))
-from helper import get_TransUNet_model
+sys.path.append(os.path.abspath('../../../'))
+from helper import get_Unet_model
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--volume_path', type=str,
@@ -36,14 +34,10 @@ parser.add_argument('--batch_size', type=int, default=24,
 parser.add_argument('--img_size', type=int, default=224, help='input patch size of network input')
 parser.add_argument('--is_savenii', action="store_true", help='whether to save results during inference')
 
-parser.add_argument('--n_skip', type=int, default=3, help='using number of skip-connect, default is num')
-parser.add_argument('--vit_name', type=str, default='ViT-B_16', help='select one vit model')
-
 parser.add_argument('--test_save_dir', type=str, default='../predictions', help='saving prediction as nii!')
 parser.add_argument('--deterministic', type=int,  default=1, help='whether use deterministic training')
 parser.add_argument('--base_lr', type=float,  default=0.01, help='segmentation network learning rate')
 parser.add_argument('--seed', type=int, default=1234, help='random seed')
-parser.add_argument('--vit_patches_size', type=int, default=16, help='vit_patches_size, default is 16')
 args = parser.parse_args()
 
 
@@ -82,14 +76,16 @@ if __name__ == "__main__":
     torch.manual_seed(args.seed)
     torch.cuda.manual_seed(args.seed)
 
-    args.exp = 'TU_' + args.dataset + str(args.img_size)
+    # args.exp = 'U_' + args.dataset + str(args.img_size)
 
-    net = get_TransUNet_model(args)
+    net = get_Unet_model(args)
     snapshot_path = args.checkpoint_path
     # snapshot = os.path.join(snapshot_path, 'best_model.pth')
     # if not os.path.exists(snapshot): snapshot = snapshot.replace('best_model', 'epoch_'+str(args.max_epochs-1))
-    net.load_state_dict(torch.load(args.checkpoint_path))
+    # net.load_state_dict(torch.load(args.checkpoint_path))
     snapshot_name = snapshot_path.split('/')[-1]
+    args.exp = args.test_save_dir.split('/')
+    args.exp = args.exp[-2] + '_' + args.exp[-1]
 
     log_folder = './test_log/test_log_' + args.exp
     os.makedirs(log_folder, exist_ok=True)

@@ -1,16 +1,24 @@
 import sys
 import os
 import random
+from pathlib import Path
 
 import numpy as np
 import torch
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
 
-sys.path.append(os.path.abspath('references/TransUNet'))
+REPO_DIR = Path(__file__).resolve().parent
+sys.path.append(os.path.abspath(f'{REPO_DIR}/references/TransUNet'))
+sys.path.append(os.path.abspath(f'{REPO_DIR}/references/Swin-Unet'))
+sys.path.append(os.path.abspath(f'{REPO_DIR}/references/Unet/dense_adversarial_generation_pytorch'))
+
 from networks.vit_seg_modeling import CONFIGS as CONFIGS_ViT_seg
 from datasets.dataset_synapse import Synapse_dataset
 from networks.vit_seg_modeling import VisionTransformer as ViT_seg
+from networks.vision_transformer import SwinUnet
+from config import get_config
+from model import UNet_baysian as UNet
 
 # Set device to cuda if available
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -56,7 +64,7 @@ def get_TransUNet_model(args):
         'Synapse': {
             'Dataset': Synapse_dataset,
             'volume_path': args.volume_path,
-            'list_dir': './references/TransUNet/lists/lists_Synapse',
+            'list_dir': args.list_dir,
             'num_classes': 9,
             'z_spacing': 1,
             'img_size': 224,
@@ -83,4 +91,63 @@ def get_TransUNet_model(args):
     net = ViT_seg(config_vit, img_size=args.img_size, num_classes=config_vit.n_classes).cuda()
 
     net.load_state_dict(torch.load(snapshot_path))
+    return net
+
+def get_SwinUnet_model(args):
+    config = get_config(args)
+
+    dataset_config = {
+        'Synapse': {
+            'Dataset': Synapse_dataset,
+            'volume_path': args.volume_path,
+            'list_dir': args.list_dir,
+            'num_classes': 9,
+            'z_spacing': 1,
+            'img_size': 224
+        },
+    }
+    dataset_name = args.dataset
+    args.num_classes = dataset_config[dataset_name]['num_classes']
+    args.volume_path = dataset_config[dataset_name]['volume_path']
+    args.Dataset = dataset_config[dataset_name]['Dataset']
+    args.list_dir = dataset_config[dataset_name]['list_dir']
+    args.z_spacing = dataset_config[dataset_name]['z_spacing']
+    args.img_size = dataset_config[dataset_name]['img_size']
+    args.is_pretrain = True
+
+    snapshot_path = args.checkpoint_path
+
+    net = SwinUnet(config, img_size=args.img_size, num_classes=args.num_classes).cuda()
+
+    print(f'Loading checkpoint from {snapshot_path}')
+    net.load_state_dict(torch.load(snapshot_path))
+    print("Finished loading checkpoint")
+    return net
+
+def get_Unet_model(args):
+    dataset_config = {
+        'Synapse': {
+            'Dataset': Synapse_dataset,
+            'volume_path': args.volume_path,
+            'list_dir': args.list_dir,
+            'num_classes': 9,
+            'z_spacing': 1,
+            'img_size': 224
+        },
+    }
+    dataset_name = args.dataset
+    args.num_classes = dataset_config[dataset_name]['num_classes']
+    args.volume_path = dataset_config[dataset_name]['volume_path']
+    args.Dataset = dataset_config[dataset_name]['Dataset']
+    args.list_dir = dataset_config[dataset_name]['list_dir']
+    args.z_spacing = dataset_config[dataset_name]['z_spacing']
+    args.img_size = dataset_config[dataset_name]['img_size']
+
+    snapshot_path = args.checkpoint_path
+
+    net = UNet(args.num_classes).cuda()
+
+    print(f'Loading checkpoint from {snapshot_path}')
+    net.load_state_dict(torch.load(snapshot_path))
+    print("Finished loading checkpoint")
     return net
