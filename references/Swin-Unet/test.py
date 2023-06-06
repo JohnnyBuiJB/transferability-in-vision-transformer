@@ -134,7 +134,7 @@ if __name__ == "__main__":
     logging.info(snapshot_name)
 
     if args.is_savenii:
-        args.test_save_dir = os.path.join(args.output_dir, "predictions")
+        # args.test_save_dir = os.path.join(args.output_dir, "predictions")
         test_save_path = args.test_save_dir 
         os.makedirs(test_save_path, exist_ok=True)
     else:
