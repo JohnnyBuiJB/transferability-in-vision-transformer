@@ -4,9 +4,8 @@ import torch.nn.functional as F
 from .unet_parts import *
 
 class UNet_baysian(BaseModel):
-    def __init__(self):
+    def __init__(self, n_classes):
         n_channels = 1
-        n_classes = 15
         super(UNet_baysian, self).__init__()
         self.inc = inconv(n_channels, 64)
         self.down1 = down(64, 128)
