@@ -12,7 +12,7 @@ from torch.utils.data import DataLoader
 from scipy.ndimage import zoom
 from tqdm import tqdm
 
-from helper import set_seeds, get_TransUNet_model, show_compare_img, get_SwinUnet_model
+from helper import set_seeds, get_TransUNet_model, show_compare_img, get_SwinUnet_model, get_Unet_model
 from adv_attacks import FGSM
 from utils import test_single_volume
 
@@ -83,6 +83,8 @@ if __name__ == '__main__':
         model = get_TransUNet_model(args)
     elif args.model_name == 'SU':
         model = get_SwinUnet_model(args)
+    elif args.model_name == 'U':
+        model = get_Unet_model(args)
 
     db_test = args.Dataset(base_dir=args.volume_path, split="test_vol", list_dir=args.list_dir)
     testloader = DataLoader(db_test, batch_size=1, shuffle=False, num_workers=1)
