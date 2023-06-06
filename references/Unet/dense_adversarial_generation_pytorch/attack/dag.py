@@ -88,7 +88,7 @@ def DAG(model,image,ground_truth,adv_target,num_iterations=20,gamma=0.07,no_back
         
         #Calculating Magnitude of the gradient
         r_m_grad_mag=r_m_grad_calc.norm()
-        
+        # print(r_m_grad_mag)
         if(r_m_grad_mag==0):
             print("Condition Reached, no gradient")
             #image=None
